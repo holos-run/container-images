@@ -1,9 +1,9 @@
 name: Golang
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   schedule:
-    - cron: "0 1 * * *" # 1AM UTC, 6PM PST
+    - cron: "30 1 * * *" # 1:30AM UTC, 6:30PM PST
 
 jobs:
   git:
