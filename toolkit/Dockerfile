@@ -25,7 +25,8 @@ RUN curl -Lo /usr/local/bin/kubectl "https://dl.k8s.io/release/v1.28.4/bin/linux
 
 RUN groupadd --gid 8192 app && \
   useradd -m -d /app -c "App" -m --uid 8192 --gid 8192 app && \
-  usermod -aG sudo app
+  usermod -aG sudo app && \
+  echo '%sudo ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/sudo
 
 WORKDIR /app
 
