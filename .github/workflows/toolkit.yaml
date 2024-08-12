@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
   aws:
-    runs-on: [dev-runners]
+    runs-on: [ubuntu-22.04]
     permissions:
       id-token: write # Necessary to get aws creds via oidc token exchange
       contents: read
@@ -38,9 +38,9 @@ jobs:
       docker-config: ${{ steps.docker-login.outputs.docker-config }}
   kaniko:
     needs: [git, aws]
-    runs-on: [dev-runners]
+    runs-on: [ubuntu-22.04]
     container:
-      image: gcr.io/kaniko-project/executor:v1.17.0-debug
+      image: gcr.io/kaniko-project/executor:v1.23.2-debug
     permissions:
       contents: read # read the repository
     steps:
