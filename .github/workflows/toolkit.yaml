@@ -11,11 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-  aws:
+  kaniko:
     runs-on: [ubuntu-22.04]
+    needs: [git]
+    container:
+      image: gcr.io/kaniko-project/executor:v1.23.2-debug
     permissions:
-      id-token: write # Necessary to get aws creds via oidc token exchange
-      contents: read
+      contents: read # read the repository
     steps:
       - name: AWS Credentials
         id: login-aws
@@ -28,39 +30,17 @@ jobs:
       - name: Login to Amazon ECR Private
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      - name: Login to Amazon ECR Public
-        run: aws ecr-public get-login-password --region us-east-2 | docker login --username AWS --password-stdin public.ecr.aws
-      - name: Docker Login
-        id: docker-login
-        run: |
-          echo -n ${{ steps.login-ecr.outputs.docker_password_271053619184_dkr_ecr_us_east_2_amazonaws_com }} | docker login --password-stdin --username ${{ steps.login-ecr.outputs.docker_username_271053619184_dkr_ecr_us_east_2_amazonaws_com }} ${{ steps.login-ecr.outputs.registry }}
-          echo "docker-config=$(cat ~/.docker/config.json | base64 -w 0)" >> $GITHUB_OUTPUT
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-      docker-config: ${{ steps.docker-login.outputs.docker-config }}
-  kaniko:
-    needs: [git, aws]
-    runs-on: [ubuntu-22.04]
-    container:
-      image: gcr.io/kaniko-project/executor:v1.23.2-debug
-    permissions:
-      contents: read # read the repository
-    steps:
       - name: Build and push container image
         run: |
-          # Kaniko
-          echo -n ${{ needs.aws.outputs.docker-config }} | base64 -d > /kaniko/.docker/config.json
-
+          echo '{"credHelpers":{"public.ecr.aws":"ecr-login","271053619184.dkr.ecr.us-east-2.amazonaws.com":"ecr-login"}}' > ~/.docker/config.json
           # Configure git credentials to access github private repositories.
-          export GIT_USERNAME='holos-server-go'
+          export GIT_USERNAME=actions
           export GIT_PASSWORD='${{ secrets.GITHUB_TOKEN }}'
-
           # Build and push
           /kaniko/executor --dockerfile=toolkit/Dockerfile \
             --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ needs.aws.outputs.registry }}/holos-run/container-images/toolkit:latest \
+            --destination=${{ steps.login-ecr.outputs.registry }}/holos-run/container-images/toolkit:latest \
             --push-retry 5 \
             --image-name-with-digest-file /workspace/image-digest.txt
-
           # Make this an artifact?
           cat /workspace/image-digest.txt
