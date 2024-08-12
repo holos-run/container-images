@@ -29,10 +29,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       - name: Login to Amazon ECR Public
-        id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-type: public
+        run: aws ecr-public get-login-password --region us-east-2 | docker login --username AWS --password-stdin public.ecr.aws
       - name: Docker Login
         id: docker-login
         run: |
