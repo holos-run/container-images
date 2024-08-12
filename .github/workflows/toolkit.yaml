@@ -25,9 +25,14 @@ jobs:
           role-to-assume: arn:aws:iam::271053619184:role/gha-app-role
           aws-region: us-east-2
           output-credentials: true
-      - name: AWS ECR Credentials
+      - name: Login to Amazon ECR Private
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
       - name: Docker Login
         id: docker-login
         run: |
