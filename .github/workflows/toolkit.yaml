@@ -17,8 +17,7 @@ jobs:
       id-token: write # Necessary to get aws creds via oidc token exchange
       contents: read
     steps:
-      - name: AWS ECR Public Credentials
-        id: login-aws
+      - name: AWS us-east-1 credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Defined at https://github.com/holos-run/holos-infra/blob/main/terraform/projects/nonprod-holos/shared_services/aws/github_oidc/main.tf#L90-L106
@@ -30,8 +29,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
-      - name: AWS Credentials
-        id: login-aws
+      - name: AWS us-east2 credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Defined at https://github.com/holos-run/holos-infra/blob/main/terraform/projects/nonprod-holos/shared_services/aws/github_oidc/main.tf#L90-L106
