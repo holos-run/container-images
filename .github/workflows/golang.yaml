@@ -3,60 +3,40 @@ name: Golang
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "30 1 * * *" # 1:30AM UTC, 6:30PM PST
+    - cron: "30 1 * * *" # 1 AM UTC, 6 PM PST
 
 jobs:
   git:
-    runs-on: [ubuntu-22.04]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-  aws:
-    runs-on: [ubuntu-22.04]
-    permissions:
-      id-token: write # Necessary to get aws creds via oidc token exchange
-      contents: read
-    steps:
-      - name: AWS Credentials
-        id: login-aws
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          # Defined at https://github.com/holos-run/holos-infra/blob/main/terraform/projects/nonprod-holos/shared_services/aws/github_oidc/main.tf#L90-L106
-          role-to-assume: arn:aws:iam::271053619184:role/gha-app-role
-          aws-region: us-east-2
-          output-credentials: true
-      - name: AWS ECR Credentials
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-      - name: Docker Login
-        id: docker-login
-        run: |
-          echo -n ${{ steps.login-ecr.outputs.docker_password_271053619184_dkr_ecr_us_east_2_amazonaws_com }} | docker login --password-stdin --username ${{ steps.login-ecr.outputs.docker_username_271053619184_dkr_ecr_us_east_2_amazonaws_com }} ${{ steps.login-ecr.outputs.registry }}
-          echo "docker-config=$(cat ~/.docker/config.json | base64 -w 0)" >> $GITHUB_OUTPUT
+      - name: SHA
+        id: sha
+        run: echo "sha=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_OUTPUT
     outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-      docker-config: ${{ steps.docker-login.outputs.docker-config }}
+      sha: ${{ steps.sha.outputs.sha }}
   kaniko:
-    needs: [git, aws]
-    runs-on: [ubuntu-22.04]
+    runs-on: ubuntu-latest
+    needs: [git]
     container:
       image: gcr.io/kaniko-project/executor:v1.23.2-debug
     permissions:
       contents: read # read the repository
     steps:
-      - name: Build and push container image
+      - name: Build and Push Container
         run: |
-          # Kaniko
-          echo -n ${{ needs.aws.outputs.docker-config }} | base64 -d > /kaniko/.docker/config.json
+          # Docker config provided by ecr.yaml workflow.
+          echo -n ${{ secrets.DOCKER_CONFIG_BASE64 }} | base64 -d > /kaniko/.docker/config.json
 
           # Configure git credentials to access github private repositories.
-          export GIT_USERNAME='holos-server-go'
+          export GIT_USERNAME='GITHUB_TOKEN'
           export GIT_PASSWORD='${{ secrets.GITHUB_TOKEN }}'
 
           # Build and push
           /kaniko/executor --dockerfile=golang/Dockerfile \
             --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ needs.aws.outputs.registry }}/holos-run/container-images/golang:1.21-bullseye \
+            --destination=${{ vars.REGISTRY }}/holos-run/container-images/golang:1.21-bullseye \
             --push-retry 5 \
             --image-name-with-digest-file /workspace/image-digest.txt
 
