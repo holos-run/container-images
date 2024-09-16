@@ -6,7 +6,7 @@ on:
     - cron: "50 1 * * *" # 1 AM UTC, 6 PM PST
 
 jobs:
-  git:
+  buildx:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -14,35 +14,30 @@ jobs:
       - name: SHA
         id: sha
         run: echo "sha=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to quay.io
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      - name: Set Tags
+        id: tags
+        run: |
+          echo "date_stamp=$(date +"%F")" >> $GITHUB_OUTPUT
+          echo "week_stamp=$(date +"%Y-%U")" >> $GITHUB_OUTPUT
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: toolkit
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/toolkit:latest
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/toolkit:${{ steps.tags.outputs.date_stamp}}
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/toolkit:${{ steps.tags.outputs.week_stamp}}
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
-  kaniko:
-    runs-on: ubuntu-latest
-    needs: [git]
-    container:
-      image: gcr.io/kaniko-project/executor:v1.23.2-debug
-    permissions:
-      contents: read # read the repository
-    steps:
-      - name: Build and Push Container
-        run: |
-          # Docker config provided by ecr.yaml workflow.
-          echo -n ${{ secrets.DOCKER_CONFIG_BASE64 }} | base64 -d > /kaniko/.docker/config.json
-
-          # Configure git credentials to access github private repositories.
-          export GIT_USERNAME='GITHUB_TOKEN'
-          export GIT_PASSWORD='${{ secrets.GITHUB_TOKEN }}'
-
-          # Build and push
-          /kaniko/executor --dockerfile=toolkit/Dockerfile \
-            --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/toolkit:latest \
-            --push-retry 5 \
-            --image-name-with-digest-file /workspace/image-digest.txt
-
-          # TODO: Save the image to a tarball, make it an artifact, then use
-          # crane to push it to multiple tags.
-          # See https://stackoverflow.com/questions/62665625/how-to-perform-kaniko-docker-build-and-push-in-separate-gitlab-ci-stages
-
-          # Make this an artifact?
-          cat /workspace/image-digest.txt

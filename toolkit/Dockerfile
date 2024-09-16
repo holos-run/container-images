@@ -1,6 +1,6 @@
-FROM public.ecr.aws/docker/library/docker:cli as docker
-FROM public.ecr.aws/aws-cli/aws-cli as aws-cli
-FROM registry.k8s.io/kubectl:v1.31.0 as kubectl
+FROM public.ecr.aws/docker/library/docker:cli AS docker
+FROM public.ecr.aws/aws-cli/aws-cli AS aws-cli
+FROM registry.k8s.io/kubectl:v1.31.0 AS kubectl
 FROM public.ecr.aws/docker/library/debian:bullseye AS final
 
 # Install tools
@@ -10,7 +10,9 @@ RUN apt-get -qq -y update && \
       curl \
       jq \
       less \
-      sudo
+      sudo \
+      && apt-get clean \
+      && rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 # Install kubectl
 RUN mkdir -p /etc/ssl/certs

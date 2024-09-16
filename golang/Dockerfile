@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/golang:1.21-bullseye AS final
+FROM public.ecr.aws/docker/library/golang:1.22-bullseye AS final
 
 # Install NodeJS 20
 RUN mkdir -p /etc/apt/keyrings && \
@@ -12,7 +12,9 @@ RUN apt-get -qq -y update && \
       build-essential \
       nodejs \
       git \
-      curl
+      curl \
+      && apt-get clean \
+      && rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 RUN curl -fsSL -o /bin/yarn https://github.com/yarnpkg/yarn/releases/download/v1.22.19/yarn-1.22.19.js && \
     chmod a+x /bin/yarn
