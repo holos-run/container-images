@@ -49,8 +49,10 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
+          # Log in to ecr and quay.io
           echo -n ${{ steps.login-ecr.outputs.docker_password_271053619184_dkr_ecr_us_east_2_amazonaws_com }} | docker login --password-stdin --username ${{ steps.login-ecr.outputs.docker_username_271053619184_dkr_ecr_us_east_2_amazonaws_com }} ${{ steps.login-ecr.outputs.registry }}
           echo -n ${{ steps.login-ecr-public.outputs.docker_password_public_ecr_aws }} | docker login --password-stdin --username ${{ steps.login-ecr-public.outputs.docker_username_public_ecr_aws }} ${{ steps.login-ecr-public.outputs.registry }}
+          echo -n '${{ secrets.QUAY_TOKEN }}' | docker login --password-stdin --username '${{ secrets.QUAY_USER }}' quay.io
 
           base64 -w 0 ~/.docker/config.json | gh secret set DOCKER_CONFIG_BASE64
-          echo -n ${{ steps.login-ecr.outputs.registry }} | gh variable set REGISTRY
+          echo -n ${{ steps.login-ecr.outputs.registry }} | gh variable set ECR_REGISTRY

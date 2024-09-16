@@ -36,7 +36,7 @@ jobs:
           # Build and push
           /kaniko/executor --dockerfile=golang/Dockerfile \
             --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ vars.REGISTRY }}/holos-run/container-images/golang:1.21-bullseye \
+            --destination=${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.21-bullseye \
             --push-retry 5 \
             --image-name-with-digest-file /workspace/image-digest.txt
 

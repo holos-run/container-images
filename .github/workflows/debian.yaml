@@ -36,7 +36,7 @@ jobs:
           # Build and push
           /kaniko/executor --dockerfile=debian/Dockerfile \
             --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ vars.REGISTRY }}/holos-run/container-images/debian:bullseye \
+            --destination=${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bullseye \
             --push-retry 5 \
             --image-name-with-digest-file /workspace/image-digest.txt
 

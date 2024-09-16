@@ -36,9 +36,13 @@ jobs:
           # Build and push
           /kaniko/executor --dockerfile=toolkit/Dockerfile \
             --context='${{ github.repositoryUrl }}#${{ needs.git.outputs.sha }}' \
-            --destination=${{ vars.REGISTRY }}/holos-run/container-images/toolkit:latest \
+            --destination=${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/toolkit:latest \
             --push-retry 5 \
             --image-name-with-digest-file /workspace/image-digest.txt
+
+          # TODO: Save the image to a tarball, make it an artifact, then use
+          # crane to push it to multiple tags.
+          # See https://stackoverflow.com/questions/62665625/how-to-perform-kaniko-docker-build-and-push-in-separate-gitlab-ci-stages
 
           # Make this an artifact?
           cat /workspace/image-digest.txt
