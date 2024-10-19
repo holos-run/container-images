@@ -11,6 +11,7 @@ RUN apt-get -qq -y update && \
       jq \
       less \
       sudo \
+      python3-bcrypt \
       && apt-get clean \
       && rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
