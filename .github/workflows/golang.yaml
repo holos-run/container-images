@@ -1,4 +1,4 @@
-name: Golang
+name: Go
 
 on:
   workflow_dispatch: {}
@@ -36,8 +36,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.22-bullseye
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.22-bullseye-${{ steps.tags.outputs.date_stamp}}
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.22-bullseye-${{ steps.tags.outputs.week_stamp}}
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.23-bookworm
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.23-bookworm-${{ steps.tags.outputs.date_stamp}}
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/golang:1.23-bookworm-${{ steps.tags.outputs.week_stamp}}
     outputs:
       sha: ${{ steps.sha.outputs.sha }}

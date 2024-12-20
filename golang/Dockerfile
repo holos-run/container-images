@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/golang:1.22-bullseye AS final
+FROM public.ecr.aws/docker/library/golang:1.23-bullseye AS final
 
 # Install NodeJS 20
 RUN mkdir -p /etc/apt/keyrings && \
