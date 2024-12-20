@@ -1,5 +1,5 @@
 FROM registry.k8s.io/kubectl:v1.31.0 AS kubectl
-FROM quay.io/holos-run/golang:1.23-bookworm as go
+FROM quay.io/holos-run/golang:1.23-bookworm AS go
 
 # Install holos
 RUN go install github.com/holos-run/holos/cmd/holos@latest
@@ -11,6 +11,7 @@ FROM public.ecr.aws/docker/library/debian:bookworm AS final
 RUN apt-get -qq -y update && \
     apt-get -qq -y install \
       openssh-client \
+      git \
       curl \
       jq \
       less \
@@ -34,11 +35,11 @@ RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/s
   && ./get_helm.sh \
   && rm -f get_helm.sh
 
-RUN groupadd --gid 8192 app && \
-  useradd -m -d /app -c "App" -m --uid 8192 --gid 8192 app && \
+# Match GitHub Actions workspace UID of 1001
+RUN groupadd --gid 1001 app && \
+  useradd -m -d /app -c "App" -m --uid 1001 --gid 1001 app && \
   usermod -aG sudo app && \
   echo '%sudo ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/sudo
 
 WORKDIR /app
-
 USER app
