@@ -36,8 +36,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bullseye
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bullseye-${{ steps.tags.outputs.date_stamp}}
-            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bullseye-${{ steps.tags.outputs.week_stamp}}
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bookworm
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bookworm-${{ steps.tags.outputs.date_stamp}}
+            ${{ vars.REGISTRY }}${{ vars.IMAGE_PREFIX }}/debian:bookworm-${{ steps.tags.outputs.week_stamp}}
     outputs:
       sha: ${{ steps.sha.outputs.sha }}

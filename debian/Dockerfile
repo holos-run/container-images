@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/debian:bullseye AS final
+FROM public.ecr.aws/docker/library/debian:bookworm AS final
 
 # Install tools
 RUN apt-get -qq -y update && \
